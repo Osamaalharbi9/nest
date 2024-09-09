@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 class AuthViewModel extends StateNotifier<User?> {
   FirebaseAuth _auth;
   FirebaseFirestore _dataBase;
@@ -15,11 +16,14 @@ class AuthViewModel extends StateNotifier<User?> {
       BuildContext context) async {
     try {
       UserCredential userCredentials = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
-      await _dataBase
-          .collection('users')
-          .doc(userCredentials.user!.uid)
-          .set({'username': username, 'email': email, 'urlImage': 'url'});
+          .createUserWithEmailAndPassword(email: email, password: 'password');
+      await _auth.currentUser!.sendEmailVerification();
+      await _dataBase.collection('users').doc(userCredentials.user!.uid).set({
+        'username': 'username',
+        'email': email,
+        'passwordUpdated': false,
+        'urlImage': 'url'
+      });
       await _dataBase
           .collection('lists')
           .doc(userCredentials.user!.uid)
@@ -46,6 +50,19 @@ class AuthViewModel extends StateNotifier<User?> {
     Navigator.pop(context);
     Navigator.pop(context);
     // Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>const BottomNavigator()),  (Route<dynamic> route) => false);
+  }
+
+  Future<bool> userUpdatedPassword() async {
+    try {
+      final data =
+          await _dataBase.collection('users').doc(_auth.currentUser!.uid).get();
+      final bool loadedData = data.data()!['passwordUpdated'];
+      print(loadedData);
+      return loadedData;
+    } on FirebaseAuthException catch (e) {
+      print(e.message);
+      return false;
+    }
   }
 
   Future<void> login(

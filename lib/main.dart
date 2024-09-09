@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:nest/bottom_navigator.dart';
 import 'package:nest/config/themes/dark_theme.dart';
 import 'package:nest/features/auth/auth_page.dart';
+import 'package:nest/features/auth/views/new_user.dart';
 import 'package:nest/firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nest/features/auth/providers/auth_provider.dart';
@@ -30,7 +31,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final _authNotifier = ref.watch(authNotifier.notifier);
-
+    
     return ScreenUtilInit(
       designSize: const Size(430.0, 932.0),
       minTextAdapt: true,
@@ -52,8 +53,10 @@ class MyApp extends ConsumerWidget {
                 child: Text('Error'),
               );
             }
+            
             if (snapshot.hasData) {
-              return const BottomNavigator();
+              // return const BottomNavigator();
+              return NewUser();
             }
             return const AuthView();
           },

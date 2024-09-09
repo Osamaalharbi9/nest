@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nest/core/common/widgets/custom_snack_bar.dart';
 import 'package:nest/core/services.dart';
 import 'package:nest/features/auth/providers/auth_provider.dart';
 import 'package:nest/features/home/providers/favourite_movies.dart';
 import 'package:nest/features/home/pages/movies_category_list.dart';
 import 'package:nest/features/profile/providers/ai.dart';
 import 'package:nest/features/profile/providers/profile_provider.dart';
+import 'package:nest/features/profile/widgets/sheet_search.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -16,9 +18,9 @@ class ProfilePage extends ConsumerStatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
-
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   File? _pickedImageFile;
+  bool _isDisabled = false; // Track the button state here
 
   void _pickImage() async {
     showModalBottomSheet(
@@ -30,39 +32,36 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         width: double.infinity,
         child: Column(
           children: [
-            TextButton(onPressed: () async{
-              final pickedImage=await ImagePicker().pickImage(source: ImageSource.camera,imageQuality: 50,maxWidth: 150);
-              if(pickedImage==null)return;
-              setState(() {
-                _pickedImageFile=File(pickedImage.path);
-              });
-            }, child: const Text('Camera')),
-            TextButton(onPressed: ()async {
-              final pickedImage=await ImagePicker().pickImage(source: ImageSource.gallery,imageQuality: 50,maxWidth: 150);
-              if(pickedImage==null)return;
-              setState(() {
-                _pickedImageFile=File(pickedImage.path);
-              });
-            }, child: const Text('Gallery'))
+            TextButton(
+              onPressed: () async {
+                final pickedImage = await ImagePicker().pickImage(
+                    source: ImageSource.camera,
+                    imageQuality: 50,
+                    maxWidth: 150);
+                if (pickedImage == null) return;
+                setState(() {
+                  _pickedImageFile = File(pickedImage.path);
+                });
+              },
+              child: const Text('Camera'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final pickedImage = await ImagePicker().pickImage(
+                    source: ImageSource.gallery,
+                    imageQuality: 50,
+                    maxWidth: 150);
+                if (pickedImage == null) return;
+                setState(() {
+                  _pickedImageFile = File(pickedImage.path);
+                });
+              },
+              child: const Text('Gallery'),
+            )
           ],
         ),
       ),
     );
-    // final pickedImage = await ImagePicker().pickImage(
-    //   source: isCamera == true ? ImageSource.camera : ImageSource.gallery,
-    //   imageQuality: 50,
-    //   maxWidth: 150,
-    // );
-    // if (pickedImage == null) return;
-
-    // setState(() {
-    //   _pickedImageFile = File(pickedImage.path);
-    // });
-  }
-
-  void _pickBanner() async {
-    final pickedImage =
-        await ImagePicker().pickImage(source: ImageSource.camera);
   }
 
   @override
@@ -70,7 +69,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final _authNotifier = ref.watch(authNotifier.notifier);
     final movieNotifier = ref.read(profileProvider.notifier);
     final favouriteMoviesNotifier = ref.read(favouriteMoviesProvider.notifier);
-    final favouriteProvider = ref.watch(favouriteMoviesProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -87,9 +85,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       Padding(
                         padding: EdgeInsets.all(8.0.sp),
                         child: GestureDetector(
-                          onTap: () {
-                            _pickImage();
-                          },
+                          onTap: _pickImage,
                           child: CircleAvatar(
                             radius: 40.r,
                             backgroundImage: _pickedImageFile != null
@@ -108,12 +104,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         padding: EdgeInsets.all(8.0.sp),
                         child: Column(
                           children: [
-                            const Text(
-                              'Username',
-                            ),
+                            const Text('Username'),
                             GestureDetector(
                               onTap: () async {
                                 await _authNotifier.logout();
+                                //shit
                               },
                               child: Icon(
                                 Icons.exit_to_app,
@@ -146,13 +141,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     future: movieNotifier.viewStats(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator(); // Display a loading indicator while waiting
+                        return const CircularProgressIndicator();
                       } else if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
                       } else if (snapshot.hasData) {
                         return Text(snapshot.data.toString());
                       } else {
-                        return Text('No movies found');
+                        return const Text('No movies found');
                       }
                     },
                   ),
@@ -204,8 +199,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                     children: [
                                       for (final movie in newList)
                                         Container(
-                                          width: 80,
-                                          height: 120,
+                                          width: 80.w,
+                                          height: 120.h,
                                           child: Image.network(
                                               httpPoster + movie.posterPath!),
                                         )
@@ -217,47 +212,64 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                         ),
                       ),
-                      ElevatedButton(onPressed: () {}, child: Text('ai')),
-                      FutureBuilder(
-                        future: movieNotifier.fetchUserList(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (snapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${snapshot.error}'));
-                          } else if (!snapshot.hasData ||
-                              snapshot.data!.isEmpty) {
-                            return const Center(child: Text('No movies found'));
-                          } else {
-                            final userMovies = snapshot.data!;
-                            List<String> userListTitles = [];
-                            for (final titles in userMovies)
-                              userListTitles.add(titles.title!);
-                            return FutureBuilder(
-                              future:
-                                  getMovieNightRecommendation(userListTitles),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                      child: CircularProgressIndicator());
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                      child: Text('Error: ${snapshot.error}'));
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
-                                  return const Center(
-                                      child: Text('No movies found'));
-                                } else {
-                                  return Text(snapshot.data!);
+                      ElevatedButton(
+                        onPressed: _isDisabled
+                            ? null
+                            : () async {
+                                setState(() {
+                                  _isDisabled = true; // Disable the button
+                                });
+
+                                final favList = await favouriteMoviesNotifier
+                                    .getUserCurrentMovies();
+                                List<String> favMovieTitles = [];
+                                for (final movieTitle in favList) {
+                                  favMovieTitles.add(movieTitle.title!);
+                                }
+                                if (favMovieTitles.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    CustomSnackBar(
+                              const Text(
+                                          'Please Add Your Favourite Movies First'),
+                          Theme.of(context).colorScheme.error,
+                                    context,
+                                    ),
+                                  );
+                                  setState(() {
+                                    _isDisabled = false; // Re-enable the button
+                                  });
+                                  return;
+                                }
+
+                                try {
+                                  final String movieTitle =
+                                      await getMovieNightRecommendation(
+                                          favMovieTitles);
+
+                                  showModalBottomSheet(
+                                    useRootNavigator: true,
+                                    context: context,
+                                    builder: (context) => SheetSearch(
+                                      movieTitle: movieTitle,
+                                    ),
+                                  );
+                                } catch (error) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    CustomSnackBar(
+                                      Text('Error: $error'),
+                                       Theme.of(context).colorScheme.error,
+                                       context,
+                                    ),
+                                  );
+                                } finally {
+                                  setState(() {
+                                    _isDisabled = false; // Re-enable the button
+                                  });
                                 }
                               },
-                            );
-                          }
-                        },
+                        child: _isDisabled
+                            ? const CircularProgressIndicator()
+                            : const Text('AI Recommendation'),
                       ),
                     ],
                   ),

@@ -74,6 +74,7 @@ class NewUser extends ConsumerWidget {
                   ElevatedButton(
                       onPressed: () async {
                         submit();
+                        _authNotifier.userUpdatedPassword();
                       },
                       child: null)
                 ],

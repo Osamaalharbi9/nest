@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:nest/features/home/models/movie.dart';
+import 'package:nest/features/home/pages/movie_details.dart';
 import 'package:nest/features/home/providers/movie_provider.dart';
 import 'package:nest/features/home/pages/movies_category_list.dart';
 import 'package:nest/features/home/pages/search_page.dart';
@@ -56,7 +57,8 @@ class _HomepageState extends ConsumerState<Homepage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(stretch: true,
+          SliverAppBar(
+            stretch: true,
             leading: GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -89,10 +91,22 @@ class _HomepageState extends ConsumerState<Homepage> {
                           controller: _pageController,
                           itemCount: snapshot.data!.take(5).length,
                           itemBuilder: (context, index) {
-                            return MovieCard(
-                                raduis: 0,
-                                padding: 0,
-                                moviePoster: snapshot.data![index].posterPath!);
+                            return Hero(tag: snapshot.data![index].uid!,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => MovieDetails(
+                                              movie: snapshot.data![index])));
+                                },
+                                child: MovieCard(
+                                    raduis: 0,
+                                    padding: 0,
+                                    moviePoster:
+                                        snapshot.data![index].posterPath!),
+                              ),
+                            );
                           },
                         ),
                         Padding(
@@ -147,8 +161,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => MoviesCategoryList(
-                                fullCategoryList:
-                                    snapshot.data!['popular']!,
+                                fullCategoryList: snapshot.data!['popular']!,
                               ),
                             ),
                           );
@@ -165,8 +178,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => MoviesCategoryList(
-                                fullCategoryList:
-                                    snapshot.data!['top_rated']!,
+                                fullCategoryList: snapshot.data!['top_rated']!,
                               ),
                             ),
                           );
@@ -183,8 +195,7 @@ class _HomepageState extends ConsumerState<Homepage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => MoviesCategoryList(
-                                fullCategoryList:
-                                    snapshot.data!['upcoming']!,
+                                fullCategoryList: snapshot.data!['upcoming']!,
                               ),
                             ),
                           );
