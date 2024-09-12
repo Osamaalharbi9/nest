@@ -2,7 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:nest/core/common/widgets/custom_snack_bar.dart';
 import 'package:nest/core/services.dart';
 import 'package:nest/features/auth/providers/auth_provider.dart';
@@ -18,57 +21,74 @@ class ProfilePage extends ConsumerStatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
+
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   File? _pickedImageFile;
-  bool _isDisabled = false; // Track the button state here
+  bool _isDisabled = false;
 
-  void _pickImage() async {
-    showModalBottomSheet(
-      isScrollControlled: true,
-      useRootNavigator: true,
-      context: context,
-      builder: (context) => SizedBox(
-        height: 200.h,
-        width: double.infinity,
-        child: Column(
-          children: [
-            TextButton(
-              onPressed: () async {
-                final pickedImage = await ImagePicker().pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 50,
-                    maxWidth: 150);
-                if (pickedImage == null) return;
-                setState(() {
-                  _pickedImageFile = File(pickedImage.path);
-                });
-              },
-              child: const Text('Camera'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final pickedImage = await ImagePicker().pickImage(
-                    source: ImageSource.gallery,
-                    imageQuality: 50,
-                    maxWidth: 150);
-                if (pickedImage == null) return;
-                setState(() {
-                  _pickedImageFile = File(pickedImage.path);
-                });
-              },
-              child: const Text('Gallery'),
-            )
-          ],
-        ),
-      ),
-    );
+  final _storage = FirebaseStorage.instance;
+  final _firestore = FirebaseFirestore.instance;
+
+  // Method to upload the image to Firebase Storage
+  Future<String?> _uploadImage(File image) async {
+    try {
+      final userId = ref.read(authNotifier.notifier).auth.currentUser!.uid;
+      final storageRef = _storage.ref().child('profile_images/$userId.jpg');
+      await storageRef.putFile(image);
+      final imageUrl = await storageRef.getDownloadURL();
+      return imageUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
   }
 
+  // Method to pick the image and upload to Firebase Storage
+  
   @override
   Widget build(BuildContext context) {
+
     final _authNotifier = ref.watch(authNotifier.notifier);
     final movieNotifier = ref.read(profileProvider.notifier);
     final favouriteMoviesNotifier = ref.read(favouriteMoviesProvider.notifier);
+    Future<void> _pickAndUploadImage(ImageSource source) async {
+    final pickedImage = await ImagePicker().pickImage(
+        source: source, imageQuality: 50, maxWidth: 150);
+
+    if (pickedImage == null) return;
+
+    setState(() {
+      _pickedImageFile = File(pickedImage.path);
+    });
+
+    if (_pickedImageFile != null) {
+      final imageUrl = await _uploadImage(_pickedImageFile!);
+      if (imageUrl != null) {
+        // Update Firestore with the image URL
+        await _firestore
+            .collection('users')
+            .doc(_authNotifier.auth.currentUser!.uid)
+            .update({'urlImage': imageUrl});
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          CustomSnackBar(
+            Text('Profile image updated successfully'),
+            Theme.of(context).colorScheme.secondary,
+            context,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          CustomSnackBar(
+            Text('Failed to upload image'),
+            Theme.of(context).colorScheme.error,
+            context,
+          ),
+        );
+      }
+    }
+  }
+
 
     return Scaffold(
       body: CustomScrollView(
@@ -85,7 +105,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       Padding(
                         padding: EdgeInsets.all(8.0.sp),
                         child: GestureDetector(
-                          onTap: _pickImage,
+                          onTap: () => _pickAndUploadImage(ImageSource.gallery),
                           child: CircleAvatar(
                             radius: 40.r,
                             backgroundImage: _pickedImageFile != null
@@ -94,7 +114,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             child: _pickedImageFile == null
                                 ? IconButton(
                                     icon: Icon(Icons.camera_alt),
-                                    onPressed: _pickImage,
+                                    onPressed: () => _pickAndUploadImage(ImageSource.camera),
                                   )
                                 : null,
                           ),
@@ -108,13 +128,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             GestureDetector(
                               onTap: () async {
                                 await _authNotifier.logout();
-                                //shit
                               },
                               child: Icon(
                                 Icons.exit_to_app,
                                 color: Theme.of(context).colorScheme.surface,
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -229,10 +248,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                 if (favMovieTitles.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     CustomSnackBar(
-                              const Text(
+                                      const Text(
                                           'Please Add Your Favourite Movies First'),
-                          Theme.of(context).colorScheme.error,
-                                    context,
+                                      Theme.of(context).colorScheme.error,
+                                      context,
                                     ),
                                   );
                                   setState(() {
@@ -257,8 +276,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     CustomSnackBar(
                                       Text('Error: $error'),
-                                       Theme.of(context).colorScheme.error,
-                                       context,
+                                      Theme.of(context).colorScheme.error,
+                                      context,
                                     ),
                                   );
                                 } finally {

@@ -6,6 +6,7 @@ import 'package:nest/bottom_navigator.dart';
 import 'package:nest/config/themes/dark_theme.dart';
 import 'package:nest/features/auth/auth_page.dart';
 import 'package:nest/features/auth/views/new_user.dart';
+import 'package:nest/features/auth/views/user_update_password.dart';
 import 'package:nest/firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nest/features/auth/providers/auth_provider.dart';
@@ -13,8 +14,7 @@ import 'config/themes/light_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(
-      fileName: '.env');
+  await dotenv.load(fileName: '.env');
 
   try {
     await Firebase.initializeApp(
@@ -31,7 +31,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final _authNotifier = ref.watch(authNotifier.notifier);
-    
+
     return ScreenUtilInit(
       designSize: const Size(430.0, 932.0),
       minTextAdapt: true,
@@ -48,17 +48,28 @@ class MyApp extends ConsumerWidget {
                 child: CircularProgressIndicator(),
               );
             }
+
             if (snapshot.hasError) {
-              const Center(
+              return const Center(
                 child: Text('Error'),
               );
             }
-            
+
             if (snapshot.hasData) {
-              // return const BottomNavigator();
-              return NewUser();
+              return BottomNavigator()
+;              //final user = _authNotifier.auth.currentUser;
+
+              // Check if the email is verified
+              // if (user != null && user.emailVerified) {
+              //   // If the email is verified, go to BottomNavigator.com
+              //   return const UserUpdatePassword();
+              // } else {
+              //   // If the email is not verified, stay on the AuthView
+              //   return const AuthView();
+              // }
             }
-            return const AuthView();
+
+            return const AuthView(); // Default to AuthView if no user is authenticated
           },
         ),
       ),
@@ -66,10 +77,10 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-
 String getTMBDApiKey() {
   return dotenv.env['TMDB_API_KEY'] ?? '';
 }
-String getGPTApiKey(){
-  return dotenv.env['GPT_API_KEY']??'';
+
+String getGPTApiKey() {
+  return dotenv.env['GPT_API_KEY'] ?? '';
 }

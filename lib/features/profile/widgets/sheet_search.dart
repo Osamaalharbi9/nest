@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:nest/core/services.dart';
 import 'package:nest/features/home/pages/movie_details.dart';
 import 'package:nest/features/home/providers/search_provider.dart';
 
@@ -54,7 +55,8 @@ class _SheetSearchState extends ConsumerState<SheetSearch> {
               ),
             ),
             FutureBuilder(
-              future: searchNotifier.getSearchedMovies(query), // Use the updated query
+              future: searchNotifier
+                  .getSearchedMovies(query), // Use the updated query
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -65,21 +67,27 @@ class _SheetSearchState extends ConsumerState<SheetSearch> {
                 } else {
                   return Expanded(
                     child: ListView.builder(
-                      itemCount: snapshot.data!.take(1).length, // Show all results
+                      itemCount:
+                          snapshot.data!.take(1).length, // Show all results
                       itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MovieDetails(
-                                  movie: snapshot.data![index],
+                        return Hero(
+                          tag: snapshot.data![index].uid!,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MovieDetails(
+                                    movie: snapshot.data![index],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: ListTile(
-                            leading: Text(snapshot.data![index].title!),
+                              );
+                            },
+                            child: ListTile(
+                              leading: Image.network(httpPoster +
+                                  snapshot.data![index].posterPath!),
+                              title: Text(snapshot.data![index].title!),
+                            ),
                           ),
                         );
                       },
