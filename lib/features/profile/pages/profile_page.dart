@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
@@ -124,6 +123,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         padding: EdgeInsets.all(8.0.sp),
                         child: Column(
                           children: [
+                            
                             const Text('Username'),
                             GestureDetector(
                               onTap: () async {

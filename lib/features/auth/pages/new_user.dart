@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nest/features/auth/providers/auth_provider.dart';
-import 'package:nest/features/auth/views/loading_screen.dart';
+import 'package:nest/features/auth/pages/loading_screen.dart';
 
 class NewUser extends ConsumerStatefulWidget {
   const NewUser({super.key});

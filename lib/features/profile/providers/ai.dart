@@ -11,7 +11,8 @@ Future<String> getMovieNightRecommendation(List<String> movies) async {
     Uri.parse('https://api.openai.com/v1/chat/completions'),
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $gptApiKey', // Ensure the API key is passed correctly
+      'Authorization':
+          'Bearer $gptApiKey', // Ensure the API key is passed correctly
     },
     body: jsonEncode({
       'model': 'gpt-3.5-turbo',
@@ -19,7 +20,8 @@ Future<String> getMovieNightRecommendation(List<String> movies) async {
         {'role': 'system', 'content': 'You are a helpful assistant.'},
         {'role': 'user', 'content': prompt},
       ],
-      'max_tokens': 20, // Keep the token limit small to reduce chances of additional text
+      'max_tokens':
+          20, // Keep the token limit small to reduce chances of additional text
     }),
   );
 
@@ -30,7 +32,9 @@ Future<String> getMovieNightRecommendation(List<String> movies) async {
     // Ensure the response contains only the title without additional text
     if (movieTitle.contains(' ')) {
       // If there is more than one word, keep only the first part (likely the title)
-      movieTitle = movieTitle.split('\n').first; // Remove everything after newline, just in case
+      movieTitle = movieTitle
+          .split('\n')
+          .first; // Remove everything after newline, just in case
     }
 
     return movieTitle;

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nest/features/auth/views/loading_screen.dart';
+import 'package:nest/features/auth/pages/loading_screen.dart';
 
 class AuthViewModel extends StateNotifier<User?> {
   FirebaseAuth _auth;
@@ -13,21 +13,22 @@ class AuthViewModel extends StateNotifier<User?> {
         super(null) {
     _auth.authStateChanges().listen((user) => state = user);
   }
-  Future<String> getUserEmail() async {
-    try {
-      var data =
-          await _dataBase.collection('users').doc(_auth.currentUser!.uid).get();
-      String loadedData = data.data()!['email'];
-      return loadedData;
-    } catch (e) {
 
-      print(e);
-      return '';
-    }
-  }
-  Future <void>newUser(String email,String password)async{
-    await _auth.createUserWithEmailAndPassword(email: email, password: password);
-  }
+  // Future<String> getUserEmail() async {
+  //   try {
+  //     var data =
+  //         await _dataBase.collection('users').doc(_auth.currentUser!.uid).get();
+  //     String loadedData = data.data()!['email'];
+  //     return loadedData;
+  //   } catch (e) {
+
+  //     print(e);
+  //     return '';
+  //   }
+  // }
+  // Future <void>newUser(String email,String password)async{
+  //   await _auth.createUserWithEmailAndPassword(email: email, password: password);
+  // }
   Future<void> createNewUser(String username, String email, String password,
       BuildContext context) async {
     try {

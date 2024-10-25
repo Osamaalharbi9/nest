@@ -25,7 +25,7 @@ class MovieProvider extends StateNotifier<Map<String, List<Movie>>> {
         final Map<String, dynamic> data = jsonDecode(response.body);
         if (data['results'] == null) {
           print('Warning: $endpoint returned null for results.');
-          return []; // Return an empty list if results are null
+          return []; 
         }
         final List<dynamic> loadedData = data['results'];
         print('Successfully fetched movies from $endpoint');
@@ -42,14 +42,12 @@ class MovieProvider extends StateNotifier<Map<String, List<Movie>>> {
     }
   }
 
-  // Combined function to fetch all movies and return the map
   Future<Map<String, List<Movie>>> fetchAllMovies() async {
     try {
       print('Starting to fetch all movies...');
 
       final results = await Future.wait([
         fetchPopularMovies(),
-        //   fetchLatestMovies(),
         fetchUpcomingMovies(),
         fetchTopRatedMovies(),
       ]);

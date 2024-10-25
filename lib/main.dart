@@ -5,8 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:nest/bottom_navigator.dart';
 import 'package:nest/config/themes/dark_theme.dart';
 import 'package:nest/features/auth/auth_page.dart';
-import 'package:nest/features/auth/views/new_user.dart';
-import 'package:nest/features/auth/views/user_update_password.dart';
 import 'package:nest/firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nest/features/auth/providers/auth_provider.dart';
@@ -23,7 +21,7 @@ void main() async {
     print(e.toString());
   }
   runApp(const ProviderScope(child: MyApp()));
-}
+} 
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -56,10 +54,9 @@ class MyApp extends ConsumerWidget {
             }
 
             if (snapshot.hasData) {
-              return BottomNavigator()
-;              //final user = _authNotifier.auth.currentUser;
+              return BottomNavigator();              //final user = _authNotifier.auth.currentUser;
 
-              // Check if the email is verified
+              // Check if the email is verified 
               // if (user != null && user.emailVerified) {
               //   // If the email is verified, go to BottomNavigator.com
               //   return const UserUpdatePassword();
@@ -84,3 +81,15 @@ String getTMBDApiKey() {
 String getGPTApiKey() {
   return dotenv.env['GPT_API_KEY'] ?? '';
 }
+
+
+
+
+
+
+//OTP BASIC IDEA
+//generate an otp within the front-end
+//otp function thats sends email to the user with the otp and holding the
+//value for the current otp in hive local db
+//if the button is clicked the otp function will do everything metioned previuosly 
+//but the the current otp in the hive db will be replaced with the new one.

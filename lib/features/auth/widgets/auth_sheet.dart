@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:nest/features/auth/views/new_user.dart';
+import 'package:nest/features/auth/pages/new_user.dart';
 import 'package:nest/features/auth/providers/auth_provider.dart';
 
 class AuthSheet extends ConsumerStatefulWidget {
@@ -94,7 +94,9 @@ class _AuthSheetState extends ConsumerState<AuthSheet> {
                           ),
                         ],
                       ),
-                    ),
+                    ),//TODO fix this shit
+                    
+                
                   ],
                 ),
               ),
